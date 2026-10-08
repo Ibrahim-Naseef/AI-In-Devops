@@ -1,0 +1,15 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo-app
+  labels: {app: demo-app}
+spec:
+  selector:
+    matchLabels: {app: demo-app}
+  podTargetLabels: [role]     # copies the canary/stable pod label onto every metric
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+{{- end }}

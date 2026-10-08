@@ -1,0 +1,58 @@
+name: ci
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "agent/**", ".github/workflows/ci.yml"]
+  workflow_dispatch:
+concurrency:
+  group: ci
+  cancel-in-progress: false
+permissions:
+  contents: write
+
+jobs:
+  build-push:
+    runs-on: [self-hosted, linux]     # the EC2 box
+    strategy:
+      matrix:
+        include:
+          - {image: demo-app, context: app}
+          - {image: ai-sre-agent, context: agent}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Short SHA
+        run: echo "SHORT=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+      - name: Docker Hub login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - name: Build
+        run: docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:$SHORT" "${{ matrix.context }}"
+      - name: Trivy scan (report only; set exit-code to "1" to enforce)
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ env.SHORT }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+          format: table
+      - name: Push
+        run: docker push "${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:$SHORT"
+
+  bump-tags:
+    needs: build-push
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: Bump image tags in the GitOps folder
+        run: |
+          SHORT=${GITHUB_SHA::7}
+          sed -i -E "s/^(  tag: ).*/\1\"$SHORT\"/" gitops/charts/demo-app/values.yaml
+          sed -i -E "s#(image: [^[:space:]]+/ai-sre-agent:).*#\1$SHORT#" gitops/ai-sre/deployment.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gitops
+          if git diff --cached --quiet; then echo "nothing to bump"; exit 0; fi
+          git commit -m "ci: deploy $SHORT"
+          git pull --rebase origin main
+          git push origin HEAD:main

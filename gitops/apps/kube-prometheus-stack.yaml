@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: "65.x"   # pin an exact version for reproducibility
+    helm:
+      valuesObject:
+        defaultRules:
+          rules: {etcd: false, kubeScheduler: false, kubeControllerManager: false, kubeProxy: false}
+        kubeEtcd: {enabled: false}
+        kubeScheduler: {enabled: false}
+        kubeControllerManager: {enabled: false}
+        kubeProxy: {enabled: false}
+        grafana:
+          adminPassword: admin            # demo only; reachable via SSH tunnel only
+          service: {type: NodePort, nodePort: 30030}
+        prometheus:
+          service: {type: NodePort, nodePort: 30090}
+          prometheusSpec:
+            retention: 24h
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            resources: {requests: {cpu: 100m, memory: 400Mi}}
+        alertmanager:
+          config:
+            global: {resolve_timeout: 5m}
+            route:
+              receiver: "null"
+              group_by: ["namespace"]
+              group_wait: 20s
+              group_interval: 1m
+              repeat_interval: 4h
+              routes:
+                - receiver: ai-sre
+                  matchers: ['namespace="demo"']
+            receivers:
+              - name: "null"
+              - name: ai-sre
+                webhook_configs:
+                  - url: http://ai-sre-agent.ai-sre.svc.cluster.local:8000/alert
+                    send_resolved: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]

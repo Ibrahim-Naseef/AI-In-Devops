@@ -1,0 +1,25 @@
+image:
+  repository: __DH_USER__/demo-app
+  tag: "bootstrap"        # CI bumps this line on every build
+replicas: 4
+env:
+  ERROR_RATE: "0"
+  LATENCY_MS: "20"
+  MEM_HOG_MB: "0"
+resources:
+  requests:
+    cpu: 25m
+    memory: 48Mi
+  limits:
+    cpu: 200m
+    memory: 96Mi
+service:
+  type: NodePort
+  nodePort: 30081
+monitoring:
+  enabled: true
+loadgen:
+  enabled: true
+analysis:
+  enabled: true
+  url: http://ai-sre-agent.ai-sre.svc.cluster.local:8000/canary/analyze

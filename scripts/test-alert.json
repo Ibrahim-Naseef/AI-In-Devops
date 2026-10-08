@@ -1,0 +1,13 @@
+{
+  "version": "4",
+  "groupKey": "{}:{namespace=\"demo\"}-test",
+  "status": "firing",
+  "receiver": "ai-sre",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {"alertname": "DemoAppOOMKilled", "namespace": "demo", "severity": "critical", "pod": "unknown"},
+      "annotations": {"summary": "Synthetic alert: demo-app containers are being OOMKilled"}
+    }
+  ]
+}

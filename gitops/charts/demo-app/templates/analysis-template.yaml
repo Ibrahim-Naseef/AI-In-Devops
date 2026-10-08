@@ -1,0 +1,17 @@
+{{- if .Values.analysis.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: ai-canary-verdict
+spec:
+  metrics:
+    - name: ai-verdict
+      interval: 30s
+      count: 4
+      failureLimit: 0
+      failureCondition: result.verdict == "fail"
+      provider:
+        web:
+          url: "{{ .Values.analysis.url }}?namespace={{ .Release.Namespace }}&app=demo-app"
+          timeoutSeconds: 60
+{{- end }}

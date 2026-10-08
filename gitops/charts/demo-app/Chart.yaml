@@ -1,0 +1,5 @@
+apiVersion: v2
+name: demo-app
+description: Demo app deployed as an Argo Rollouts canary with AI analysis
+version: 0.1.0
+appVersion: "1.0.0"

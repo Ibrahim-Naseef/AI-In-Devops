@@ -1,0 +1,11 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-app-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  demo-app.json: |-
+{{ .Files.Get "files/dashboard.json" | indent 4 }}
+{{- end }}

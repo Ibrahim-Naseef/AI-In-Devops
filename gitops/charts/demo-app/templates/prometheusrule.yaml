@@ -1,0 +1,31 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-app
+  labels: {app: demo-app}
+spec:
+  groups:
+    - name: demo-app
+      rules:
+        - alert: DemoAppHighErrorRate
+          expr: sum(rate(http_requests_total{namespace="demo",status=~"5.."}[1m])) / sum(rate(http_requests_total{namespace="demo"}[1m])) > 0.1
+          for: 1m
+          labels: {severity: critical, namespace: demo}
+          annotations: {summary: "demo-app 5xx error rate above 10%"}
+        - alert: DemoAppHighLatency
+          expr: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="demo"}[2m]))) > 0.5
+          for: 2m
+          labels: {severity: warning, namespace: demo}
+          annotations: {summary: "demo-app p95 latency above 500ms"}
+        - alert: DemoAppOOMKilled
+          expr: kube_pod_container_status_last_terminated_reason{namespace="demo",reason="OOMKilled"} == 1
+          for: 0m
+          labels: {severity: critical}
+          annotations: {summary: "demo-app container was OOMKilled"}
+        - alert: DemoAppRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="demo"}[5m]) > 0
+          for: 0m
+          labels: {severity: warning}
+          annotations: {summary: "demo-app container restarting"}
+{{- end }}

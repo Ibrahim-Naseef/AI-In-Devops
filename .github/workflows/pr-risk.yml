@@ -1,0 +1,41 @@
+name: pr-risk
+on:
+  pull_request:
+    paths: ["gitops/**", "terraform/**"]
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  risk-score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - run: pip install openai
+      - name: Score + AI review
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+        run: python scripts/pr_risk.py > risk.md
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = require('fs').readFileSync('risk.md','utf8');
+            await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number, body});
+
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy IaC misconfiguration scan (report only)
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: "0"

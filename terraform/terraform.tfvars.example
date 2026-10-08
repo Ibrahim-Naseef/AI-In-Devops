@@ -1,0 +1,5 @@
+region           = "us-east-1"
+allowed_ssh_cidr = "203.0.113.7/32" # curl -s https://checkip.amazonaws.com
+repo_url         = "https://github.com/__GH_USER__/__GH_REPO__.git"
+instance_type    = "t3.large"
+use_spot         = false

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ai-sre-agent, namespace: ai-sre, labels: {app: ai-sre-agent}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: ai-sre-agent}}
+  template:
+    metadata: {labels: {app: ai-sre-agent}}
+    spec:
+      serviceAccountName: ai-sre-agent
+      containers:
+        - name: agent
+          image: __DH_USER__/ai-sre-agent:bootstrap
+          ports: [{name: http, containerPort: 8000}]
+          envFrom:
+            - secretRef: {name: ai-sre-secrets, optional: true}
+          env:
+            - {name: WATCH_NAMESPACES, value: demo}
+          readinessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 20, initialDelaySeconds: 10}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+          volumeMounts: [{name: data, mountPath: /data}]
+      volumes:
+        - name: data
+          emptyDir: {}   # swap for a PVC to keep incident memory across restarts
