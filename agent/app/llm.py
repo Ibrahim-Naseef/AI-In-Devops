@@ -15,19 +15,21 @@ def client() -> OpenAI:
     global _client
     if _client is None:
         _client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY,
-                         timeout=config.LLM_TIMEOUT, max_retries=1)
+                         timeout=config.LLM_TIMEOUT, max_retries=0)
     return _client
 
 
 def _create(**kw):
     for attempt in range(3):
         try:
+            if config.LLM_REASONING_EFFORT:
+                kw.setdefault("extra_body", {"reasoning_effort": config.LLM_REASONING_EFFORT})
             return client().chat.completions.create(model=config.LLM_MODEL, **kw)
         except Exception as e:  # rate limits on free tiers are common
             log.warning("LLM call failed (attempt %s/3): %s", attempt + 1, e)
             if attempt == 2:
                 raise
-            time.sleep(15)
+            time.sleep(25 * (attempt + 1))
 
 
 def extract_json(text: str):
@@ -68,7 +70,7 @@ def run_tool_loop(system, user, tools, dispatch, max_steps):
                 out = dispatch[t.function.name](**args)
             except Exception as e:
                 out = f"ERROR: {type(e).__name__}: {e}"
-            out = str(out)[:3500]  # keep prompts small (free-tier token limits)
+            out = str(out)[:2500]  # keep prompts small (free-tier token limits)
             trace.append({"tool": t.function.name, "args": args, "result_preview": out[:300]})
             messages.append({"role": "tool", "tool_call_id": t.id, "content": out})
     messages.append({"role": "user", "content": "Tool budget exhausted. Output the final JSON now."})

@@ -3,7 +3,8 @@ import os
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "40"))
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "60"))
+LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "")  # e.g. "low" for gpt-oss; empty = not sent
 
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")

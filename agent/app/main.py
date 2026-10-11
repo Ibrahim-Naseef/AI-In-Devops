@@ -1,5 +1,5 @@
 import logging, time
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, Body, FastAPI, Request
 from . import canary, config, investigator, llm, memory
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -30,9 +30,8 @@ async def alert(request: Request, bg: BackgroundTasks):
 
 
 @app.post("/investigate")
-async def investigate_now(request: Request):
-    """Manual trigger: {"namespace": "demo", "description": "pods keep restarting"}"""
-    body = await request.json()
+def investigate_now(body: dict = Body(...)):
+    """Manual trigger (sync def = runs in a worker thread, so /healthz stays responsive)."""
     ns, desc = body.get("namespace", "demo"), body.get("description", "manual investigation")
     iid = memory.create(f"manual-{time.time()}", "Manual", ns, desc)
     return investigator.investigate(iid, desc, ns)

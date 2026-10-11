@@ -16,8 +16,8 @@ spec:
             - secretRef: {name: ai-sre-secrets, optional: true}
           env:
             - {name: WATCH_NAMESPACES, value: demo}
-          readinessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 10}
-          livenessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 20, initialDelaySeconds: 10}
+          readinessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 6}
+          livenessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 20, initialDelaySeconds: 10, timeoutSeconds: 5, failureThreshold: 6}
           resources:
             requests: {cpu: 50m, memory: 128Mi}
             limits: {cpu: 500m, memory: 384Mi}
