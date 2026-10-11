@@ -1,5 +1,5 @@
 image:
-  repository: __DH_USER__/demo-app
+  repository: naseefcoder/demo-app
   tag: "c5dad50"
 replicas: 4
 env:

@@ -7,7 +7,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/__GH_USER__/__GH_REPO__.git
+    repoURL: https://github.com/Ibrahim-Naseef/AI-In-Devops.git
     targetRevision: main
     path: gitops/apps
   destination:
