@@ -1,6 +1,6 @@
 image:
   repository: naseefcoder/demo-app
-  tag: "c5dad50"
+  tag: "e7a2118"
 replicas: 4
 env:
   ERROR_RATE: "0"

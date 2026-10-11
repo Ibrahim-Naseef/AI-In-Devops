@@ -10,7 +10,7 @@ spec:
       serviceAccountName: ai-sre-agent
       containers:
         - name: agent
-          image: naseefcoder/ai-sre-agent:c5dad50
+          image: naseefcoder/ai-sre-agent:e7a2118
           ports: [{name: http, containerPort: 8000}]
           envFrom:
             - secretRef: {name: ai-sre-secrets, optional: true}
