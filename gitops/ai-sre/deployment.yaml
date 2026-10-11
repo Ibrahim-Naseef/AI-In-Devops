@@ -10,7 +10,7 @@ spec:
       serviceAccountName: ai-sre-agent
       containers:
         - name: agent
-          image: __DH_USER__/ai-sre-agent:bootstrap
+          image: __DH_USER__/ai-sre-agent:c5dad50
           ports: [{name: http, containerPort: 8000}]
           envFrom:
             - secretRef: {name: ai-sre-secrets, optional: true}

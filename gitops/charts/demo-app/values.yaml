@@ -1,6 +1,6 @@
 image:
   repository: __DH_USER__/demo-app
-  tag: "bootstrap"        # CI bumps this line on every build
+  tag: "c5dad50"
 replicas: 4
 env:
   ERROR_RATE: "0"
