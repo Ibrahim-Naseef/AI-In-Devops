@@ -122,6 +122,9 @@ Between demos, `make reset-faults`. (If the agent's PR already raised the memory
 ## No laptop? Run it all from an EC2
 See `docs/run-from-control-ec2.md`: a small control EC2 with an IAM role runs Terraform, which creates the kind-host EC2.
 
+## Only one large EC2? No Terraform needed
+Clone the repo on the box and run `./scripts/bootstrap-single-ec2.sh`, then `./scripts/create-agent-secret-local.sh`. The `break.sh` demos run on the same box. See the chat steps for the GitHub runner.
+
 ## Cost and cleanup
 
 t3.large is roughly $0.08/h plus ~$3/month for the disk, so a few hours of testing is cents. **Always `make down` when done.** Set an AWS Budget alert. Use `use_spot = true` to save more. The EC2 public IP changes on every apply.
